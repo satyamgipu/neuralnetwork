@@ -1,0 +1,507 @@
+import numpy as np
+from numpy import loadtxt
+import pandas as pd
+
+def filecall(file):
+    file = np.loadtxt(file, delimiter=',')
+    data = file[:, :784]
+    labels = file[:, 784:785]
+    return data, labels
+
+
+def softmax(z):
+    e_x = np.max(z)
+    return np.exp(z-e_x)/np.exp(z).sum(axis=0)
+
+
+def deriv_cross_entro(labels, prediction):
+    z = labels-prediction
+    return (z)
+
+
+
+def sigmoid(x):
+    t = 1 / (1 + np.exp(-x))
+    return t
+
+
+def deriv_sigmoid(z):
+    N=sigmoid(z)*(1-sigmoid(z))
+    return N
+
+def deriv_softmax(x):
+    z = softmax(x)* (1 - softmax(x))
+    return z
+
+
+def tanh(x):
+    z=np.tanh(x)
+    return z
+
+
+def relu(x):
+    z=np.maximum(x,0)
+    z = x * (x > 0)
+    z=(abs(x) + x) / 2
+    return z
+
+
+def deriv_tanh(c):
+    a=np.tanh(c)
+    z=1-a**2
+    return z
+
+
+def deriv_relu(x):
+     x[x>0]=1
+     x[x<0]=0
+     return x
+
+
+def forward_propogate(weights_1, weights_2, weight_3, bias_3 , bias_1, bias_2, data_1,activation):
+    #print(data_1.shape ,weights_1.shape)
+    #print('--------------------------')
+
+    if activation == 'sigmoid':
+                                      z1_w = np.dot(data_1, weights_1)
+                                      z1 = z1_w + bias_1
+                                      z1_N = sigmoid(z1)
+                                      z2_w = np.dot(z1_N, weights_2)
+                                      z2 = z2_w + bias_2
+                                      z2_N = sigmoid(z2)
+
+    if activation =='relu':
+                                      z1_w = np.dot(data_1, weights_1)
+                                      z1 = z1_w + bias_1
+                                      z1_N = relu(z1)
+                                      z2_w = np.dot(z1_N, weights_2)
+                                      z2 = z2_w + bias_2
+                                      z2_N = relu(z2)
+    if activation == "tanh":
+                                      z1_w = np.dot(data_1, weights_1)
+                                      z1 = z1_w + bias_1
+                                      z1_N = tanh(z1)
+                                      z2_w = np.dot(z1_N, weights_2)
+
+                                      z2 = z2_w + bias_2
+                                      z2_N = tanh(z2)
+
+
+
+    z3_w = np.dot(z2_N,weight_3)
+    z3 =softmax(z3_w+bias_3)
+    return (z1_N,z2_N,z3)
+
+
+def back_propogation(data, labels,wt1,wt2,wt3,bias1,bias2,bias3,layer1_out,layer2_out,layer3_out,activation,lr):
+    loss = deriv_cross_entro(labels, layer3_out)
+    der_soft = deriv_softmax(layer2_out)
+    lo_sof = loss*der_soft
+    bias3 += lr*lo_sof
+    wt3 += lr*np.dot(lo_sof.T, layer2_out)
+
+    loss1 = np.dot(lo_sof, wt3)
+    der_sig = deriv_sigmoid(layer1_out)
+    lo_sig = loss1*der_sig
+    bias2 += lr*lo_sig
+    wt2 += lr*np.dot(lo_sig.T, layer1_out)
+
+    loss2 = np.dot(lo_sig, wt2)
+    der_sig = deriv_sigmoid(layer1_out)
+    lo_sig2 = loss2*der_sig
+    bias1 += lr*lo_sig2
+    z=lr*np.dot(lo_sig2.T, data)
+    wt1 += z.T
+    return wt1,bias1,wt2,bias2,wt3,bias3
+
+
+def one_hot_encode(x):
+    encoded = np.zeros((len(x), 10))
+    for idx, val in enumerate(x):
+        encoded[idx][val] = 1
+    return encoded
+
+def cost_function(output, value):
+    m=2800
+    cost = (value*np.log(output))
+    cost = np.squeeze(-(1/m)*np.sum(cost))
+    return cost
+
+
+#test_data=input("whether test or train:")
+# activation=input('enter type of activation:')
+# lr= input('enter learning rate:')
+# no_hu = input('enter no, of hidden units')
+# lr=float(lr)
+data, labels = filecall('digitstest.txt')
+
+activation = "sigmoid"
+no_hu=10
+lr=0.0001
+
+nb_classes = 10
+labels = labels.astype(int)
+train_data = data[:3000, :]
+test_data = data[:200, :]
+train_label = labels[:3000, :]import numpy as np
+from numpy import loadtxt
+import pandas as pd
+
+def filecall(file):
+    file = np.loadtxt(file, delimiter=',')
+    data = file[:, :784]
+    labels = file[:, 784:785]
+    return data, labels
+
+
+def softmax(z):
+    e_x = np.max(z)
+    return np.exp(z-e_x)/np.exp(z).sum(axis=0)
+
+
+def deriv_cross_entro(labels, prediction):
+    z = labels-prediction
+    return (z)
+
+
+
+def sigmoid(x):
+    t = 1 / (1 + np.exp(-x))
+    return t
+
+
+def deriv_sigmoid(z):
+    N=sigmoid(z)*(1-sigmoid(z))
+    return N
+
+def deriv_softmax(x):
+    z = softmax(x)* (1 - softmax(x))
+    return z
+
+
+def tanh(x):
+    z=np.tanh(x)
+    return z
+
+
+def relu(x):
+    z=np.maximum(x,0)
+    z = x * (x > 0)
+    z=(abs(x) + x) / 2
+    return z
+
+
+def deriv_tanh(c):
+    a=np.tanh(c)
+    z=1-a**2
+    return z
+
+
+def deriv_relu(x):
+     x[x>0]=1
+     x[x<0]=0
+     return x
+
+
+def forward_propogate(weights_1, weights_2, weight_3, bias_3 , bias_1, bias_2, data_1,activation):
+    #print(data_1.shape ,weights_1.shape)
+    #print('--------------------------')
+
+    if activation == 'sigmoid':
+                                      z1_w = np.dot(data_1, weights_1)
+                                      z1 = z1_w + bias_1
+                                      z1_N = sigmoid(z1)
+                                      z2_w = np.dot(z1_N, weights_2)
+                                      z2 = z2_w + bias_2
+                                      z2_N = sigmoid(z2)
+
+    if activation =='relu':
+                                      z1_w = np.dot(data_1, weights_1)
+                                      z1 = z1_w + bias_1
+                                      z1_N = relu(z1)
+                                      z2_w = np.dot(z1_N, weights_2)
+                                      z2 = z2_w + bias_2
+                                      z2_N = relu(z2)
+    if activation == "tanh":
+                                      z1_w = np.dot(data_1, weights_1)
+                                      z1 = z1_w + bias_1
+                                      z1_N = tanh(z1)
+                                      z2_w = np.dot(z1_N, weights_2)
+
+                                      z2 = z2_w + bias_2
+                                      z2_N = tanh(z2)
+
+
+
+    z3_w = np.dot(z2_N,weight_3)
+    z3 =softmax(z3_w+bias_3)
+    return (z1_N,z2_N,z3)
+
+
+def back_propogation(data, labels,wt1,wt2,wt3,bias1,bias2,bias3,layer1_out,layer2_out,layer3_out,activation,lr):
+    loss = deriv_cross_entro(labels, layer3_out)
+    der_soft = deriv_softmax(layer2_out)
+    lo_sof = loss*der_soft
+    bias3 += lr*lo_sof
+    wt3 += lr*np.dot(lo_sof.T, layer2_out)
+
+    loss1 = np.dot(lo_sof, wt3)
+    der_sig = deriv_sigmoid(layer1_out)
+    lo_sig = loss1*der_sig
+    bias2 += lr*lo_sig
+    wt2 += lr*np.dot(lo_sig.T, layer1_out)
+
+    loss2 = np.dot(lo_sig, wt2)
+    der_sig = deriv_sigmoid(layer1_out)
+    lo_sig2 = loss2*der_sig
+    bias1 += lr*lo_sig2
+    z=lr*np.dot(lo_sig2.T, data)
+    wt1 += z.T
+    return wt1,bias1,wt2,bias2,wt3,bias3
+
+
+def one_hot_encode(x):
+    encoded = np.zeros((len(x), 10))
+    for idx, val in enumerate(x):
+        encoded[idx][val] = 1
+    return encoded
+
+def cost_function(output, value):
+    m=2800
+    cost = (value*np.log(output))
+    cost = np.squeeze(-(1/m)*np.sum(cost))
+    return cost
+
+
+#test_data=input("whether test or train:")
+# activation=input('enter type of activation:')
+# lr= input('enter learning rate:')
+# no_hu = input('enter no, of hidden units')
+# lr=float(lr)
+data, labels = filecall('digitstest.txt')
+
+activation = "sigmoid"
+no_hu=10
+lr=0.0001
+
+nb_classes = 10
+labels = labels.astype(int)
+train_data = data[:3000, :]
+test_data = data[:200, :]
+train_label = labels[:3000, :]
+#print(train_data.shape[0])
+#print(train_data.shape[1])
+
+dat_row = train_data.shape[0]
+dat_col = train_data.shape[1]
+hot_labels = one_hot_encode(train_label)
+#print(train_label[400:410, :])
+
+weights_1 = np.random.randn(dat_col, no_hu)*0.01
+weights_2 = np.random.randn(no_hu, no_hu)*0.01
+weight_3 = np.random.randn(no_hu, no_hu)*0.01
+bias_1 = np.random.randn(dat_row, no_hu)*0.01
+bias_2 = np.random.randn(dat_row, no_hu)*0.01
+bias_3 = np.random.randn(dat_row, no_hu)*0.01
+
+print(hot_labels)
+for i in range(100):
+    layer1, layer2, layer3 = forward_propogate(weights_1, weights_2, weight_3, bias_3, bias_1, bias_2, train_data,
+                                               activation)
+    weights_1, bias_1, weights_2, bias_2, weight_3, bias_3 = back_propogation(train_data, hot_labels, weights_1, weights_2,
+                                                                            weight_3,
+                                                                            bias_1, bias_2, bias_3, layer1, layer2,
+                                                                            layer3, activation, lr)
+ #   print(np.shape(layer3))
+    z=cost_function(layer3, hot_labels)
+  #  print(z)
+    result=np.zeros((3000, 1))
+
+    for m in range(3000):
+      result[m,0] = np.argmax(layer3[m, :])
+
+      #print(result)
+      #print(result[:10,:])
+      #print(np.shape(result))
+    #print(z)
+    counter=0
+    for n,k in zip(result, train_label):
+        if n==k:
+            counter += 1
+
+    accuracy=100*counter/3000
+    print("accuracy is", accuracy)
+
+    #print(result[:10,:])
+#print(pd.DataFrame(layer3).isnull().describe())
+'''
+for i in range(25):
+    prediction, caches = forward_propagation(X, parameters)
+    print(cost_function(prediction.T, one_hot_target))
+    grads = L_model_backward(prediction, one_hot_target, caches)
+    parameters = update_parameters(parameters, grads, lr=0.0001)
+
+    prediction_final, cah = forward_propagation(X, parameters)
+
+    prediction_final = prediction_final.T
+    pred_labels = np.zeros((3000, 1))
+    for i in range(3000):
+        pred_labels[i, 0] = np.argmax(prediction_final[i, :])
+
+    Y = Y.reshape(3000, 1)
+    counter = 0
+    for i, j in zip(pred_labels, Y):
+        if i == j:
+            counter += 1
+    accuracy = 100 * counter / Y.shape[0]
+    print(accuracy)
+
+'''
+
+
+
+
+
+'''
+
+
+nb_classes = 10
+labels = labels.astype(int)
+no_hu = int(no_hu)
+#  train_data = data[2800:3000, :]
+# _data = data[2800:3000, :]
+test_label = labels[2800:3000, :]
+test_data = data[2800:3000, :]
+dat_row = (test_data.shape[0])
+dat_col = (test_data.shape[1])
+hot_labels = one_hot_encode(labels)
+bias_1 = bias_1[:200 , :]
+bias_2 = bias_2[:200 , :]
+bias_3 = bias_3[:200 , :]
+layer1, layer2, layer3 = forward_propogate(weights_1, weights_2, weight_3, bias_3, bias_1, bias_2, test_data, activation)
+
+#print(layer3[:10,:])
+#print(layer3[:10,:])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+#print(train_data.shape[0])
+#print(train_data.shape[1])
+
+dat_row = train_data.shape[0]
+dat_col = train_data.shape[1]
+hot_labels = one_hot_encode(train_label)
+#print(train_label[400:410, :])
+
+weights_1 = np.random.randn(dat_col, no_hu)*0.01
+weights_2 = np.random.randn(no_hu, no_hu)*0.01
+weight_3 = np.random.randn(no_hu, no_hu)*0.01
+bias_1 = np.random.randn(dat_row, no_hu)*0.01
+bias_2 = np.random.randn(dat_row, no_hu)*0.01
+bias_3 = np.random.randn(dat_row, no_hu)*0.01
+
+print(hot_labels)
+for i in range(100):
+    layer1, layer2, layer3 = forward_propogate(weights_1, weights_2, weight_3, bias_3, bias_1, bias_2, train_data,
+                                               activation)
+    weights_1, bias_1, weights_2, bias_2, weight_3, bias_3 = back_propogation(train_data, hot_labels, weights_1, weights_2,
+                                                                            weight_3,
+                                                                            bias_1, bias_2, bias_3, layer1, layer2,
+                                                                            layer3, activation, lr)
+ #   print(np.shape(layer3))
+    z=cost_function(layer3, hot_labels)
+  #  print(z)
+    result=np.zeros((3000, 1))
+
+    for m in range(3000):
+      result[m,0] = np.argmax(layer3[m, :])
+
+      #print(result)
+      #print(result[:10,:])
+      #print(np.shape(result))
+    #print(z)
+    counter=0
+    for n,k in zip(result, train_label):
+        if n==k:
+            counter += 1
+
+    accuracy=100*counter/3000
+    print("accuracy is", accuracy)
+
+    #print(result[:10,:])
+#print(pd.DataFrame(layer3).isnull().describe())
+'''
+for i in range(25):
+    prediction, caches = forward_propagation(X, parameters)
+    print(cost_function(prediction.T, one_hot_target))
+    grads = L_model_backward(prediction, one_hot_target, caches)
+    parameters = update_parameters(parameters, grads, lr=0.0001)
+
+    prediction_final, cah = forward_propagation(X, parameters)
+
+    prediction_final = prediction_final.T
+    pred_labels = np.zeros((3000, 1))
+    for i in range(3000):
+        pred_labels[i, 0] = np.argmax(prediction_final[i, :])
+
+    Y = Y.reshape(3000, 1)
+    counter = 0
+    for i, j in zip(pred_labels, Y):
+        if i == j:
+            counter += 1
+    accuracy = 100 * counter / Y.shape[0]
+    print(accuracy)
+
+'''
+
+
+
+
+
+'''
+
+
+nb_classes = 10
+labels = labels.astype(int)
+no_hu = int(no_hu)
+#  train_data = data[2800:3000, :]
+# _data = data[2800:3000, :]
+test_label = labels[2800:3000, :]
+test_data = data[2800:3000, :]
+dat_row = (test_data.shape[0])
+dat_col = (test_data.shape[1])
+hot_labels = one_hot_encode(labels)
+bias_1 = bias_1[:200 , :]
+bias_2 = bias_2[:200 , :]
+bias_3 = bias_3[:200 , :]
+layer1, layer2, layer3 = forward_propogate(weights_1, weights_2, weight_3, bias_3, bias_1, bias_2, test_data, activation)
+
+#print(layer3[:10,:])
+#print(layer3[:10,:])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
